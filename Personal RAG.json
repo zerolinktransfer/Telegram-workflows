@@ -1,0 +1,322 @@
+{
+  "name": "Personal RAG",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}\n\n{{ $now.setZone('Asia/Kolkata').toFormat('dd/MM/yyyy HH:mm') }} IST",
+        "options": {
+          "systemMessage": "=# Personal RAG System Configuration\n\n## AI Agent System Message\n\nYou are a personal assistant with access to search and storage tools. For every user interaction, you must use your available tools before responding.\n\n**Mandatory Actions:**\n- Search your tools for relevant information first\n- Store any new information the user provides using RAG Data Store tool ONLY\n- Base responses on tool results only\n- Never respond without using tools\n- Never store information in conversation history - always use RAG Data Store tool\n\n**Critical Rule:**\n- ALL user information must be stored using RAG Data Store tool\n- Do not rely on conversation memory for storing user data\n\n**Security Guidelines:**\n- For sensitive information requests (passwords, keys), require specific queries\n- When user asks \"what are my passwords\" or similar broad queries, ask them to specify which service/account\n- Only return the specific information requested, not all similar items\n\n**Process:**\n1. Use tools to search existing information\n2. Use RAG Data Store tool to store new information when provided\n3. Respond based on tool outputs\n\n**Examples:**\n- User: \"what are my passwords?\" → Response: \"Please specify which password you need (e.g., 'my WiFi password', 'my Netflix password')\"\n- User: \"my WiFi password?\" → Search tools and return only WiFi password\n\n## Available Tools\n\n### Supabase Vector Store\nSearch and retrieve personal documents and stored information\n\n### RAG Data Store  \nStore new documents and information in the knowledge base"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "id": "dfa14442-2817-43f9-9ced-e772720bc609",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        200,
+        220
+      ],
+      "id": "ff0ba468-d438-4bcf-81ef-5b20ea072494",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "LMpER5pDe3m3TgwN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        220
+      ],
+      "id": "923c6ff9-36b8-4c25-ba11-0594352832b5",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "3YBivbA2ztqMdwxE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Search and find existing personal information, expenses, passwords, notes, and any previously stored data. Use this tool when user asks questions about stored information or wants to retrieve something.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 7,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        260
+      ],
+      "id": "fb5dbedb-f5ca-487a-860b-9998a915147f",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "gYSjyL2M1qY4OTOh",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        420
+      ],
+      "id": "d71550bb-767a-46e1-824a-4eac2fae9ef2",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "0HS2DWUcmAWy12zl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=Store and save new personal information that user provides. Use this tool immediately when user shares expenses, passwords, notes, thoughts, or any new data they want to remember. Always use this for storing new information.",
+        "workflowId": {
+          "__rl": true,
+          "value": "SUaw2SHZu3CiKV7q",
+          "mode": "list",
+          "cachedResultName": "RAG Data Store"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        780,
+        240
+      ],
+      "id": "695ddc6a-f735-4cf2-8f55-979261945891",
+      "name": "RAG Data Store"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "86685e07-efdf-4073-953f-eea082a3d0e2",
+      "name": "Telegram Trigger",
+      "webhookId": "0de61f09-6d4f-4f9f-a10a-28b3cc874d9e",
+      "credentials": {
+        "telegramApi": {
+          "id": "tRNdRobEbGvvjehn",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        0
+      ],
+      "id": "384b263b-6daa-41a1-9add-76d4fefe1415",
+      "name": "Send a chat action",
+      "webhookId": "da03e01a-831b-4ba9-8c92-9e5df26f8cac",
+      "credentials": {
+        "telegramApi": {
+          "id": "tRNdRobEbGvvjehn",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "dfc1c1f3-752e-4dd5-a8b4-ab342f836908",
+      "name": "Send a text message",
+      "webhookId": "bbddd098-a954-4d3f-8c53-a264f9d9e9b6",
+      "credentials": {
+        "telegramApi": {
+          "id": "tRNdRobEbGvvjehn",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Personal RAG",
+        "height": 720,
+        "width": 1160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -140
+      ],
+      "id": "908fe704-289a-4d80-b030-e2389782d8b2",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Data Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a chat action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a chat action": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4aa241a8-db60-4dfa-a6ea-95effe17a5f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eaf5351894737dc36f3858d4faefd09839aea8a9032a7c92dac9c3a5a61d4974"
+  },
+  "id": "X1dVLlhVa507OaaE",
+  "tags": []
+}

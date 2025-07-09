@@ -1,0 +1,174 @@
+{
+  "name": "Gmail",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -140,
+        0
+      ],
+      "id": "afdc5adc-7a99-4333-8196-a57f7bb3b6dc",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are a professional email writing assistant. Extract email details from the input and write professional email content in HTML format.\n\nRULES:\n- Write ONLY the email message content in HTML\n- Do NOT talk to recipient directly in the content\n- Write AS IF you are writing to the email recipient\n- Use professional tone\n- Include the professional signature below\n- Use simple HTML tags that work well in Gmail\n\nSTRUCTURE:\n<p>Dear [Name],</p>\n<p>[Email content based on the request]</p>\n<div style=\"margin-top: 20px; padding-top: 15px; border-top: 2px solid #4A90E2; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 500px;\">\n  <table cellpadding=\"0\" cellspacing=\"0\" style=\"width: 100%;\">\n    <tr>\n      <td style=\"border-bottom: 1px solid #a1a4aa; padding-bottom: 8px;\">\n        <p style=\"font-size: 20px; color: #4A90E2; font-weight: 700; text-transform: uppercase; margin: 0;\">SaiCharan</p>\n        <p style=\"font-size: 14px; margin: 5px 0 0; color: #666;\">AI Marketing Lead</p>\n        <span style=\"position: relative; bottom: -15px; min-height: 3px; max-height: 3px; width: 80px; display: inline-block; background-color: #4A90E2;\">&nbsp;</span>\n      </td>\n    </tr>\n    <tr>\n      <td style=\"padding-top: 16px;\">\n        <table cellpadding=\"0\" cellspacing=\"0\" style=\"font-size: 14px; width: 100%; line-height: 1.6;\">\n          <tr>\n            <td><b style=\"color: #4A90E2;\">Phone</b></td>\n            <td style=\"width: 20px; text-align: center;\">:</td>\n            <td><a href=\"tel:+91Mobile Number Here\" style=\"text-decoration: none; color: #333;\">+91 Mobile Number Here</a></td>\n          </tr>\n          <tr>\n            <td><b style=\"color: #4A90E2;\">Focus</b></td>\n            <td style=\"width: 20px; text-align: center;\">:</td>\n            <td style=\"color: #7B68EE;\">AI-Driven Marketing Solutions</td>\n          </tr>\n          <tr>\n            <td><b style=\"color: #4A90E2;\">Connect</b></td>\n            <td style=\"width: 20px; text-align: center;\">:</td>\n            <td><a href=\"#\" style=\"text-decoration: none; color: #4A90E2; font-weight: 500;\">Let's discuss your strategy →</a></td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n    <tr>\n      <td style=\"padding-top: 12px;\">\n        <p style=\"font-size: 11px; color: #999; margin: 0; font-style: italic;\">🚀 Powered by AI Innovation</p>\n      </td>\n    </tr>\n  </table>\n</div>\n\nOUTPUT FORMAT: Return a JSON object with these exact keys:\n{\n  \"to\": \"recipient email address\",\n  \"cc\": \"cc email addresses (comma separated) or empty string if not needed\",\n  \"subject\": \"email subject line\",\n  \"content\": \"HTML email content with professional signature\"\n}\n\nOUTPUT: Return only the JSON object. No explanations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        100,
+        0
+      ],
+      "id": "5e2c98fb-c46a-47f2-a4c7-f86c0b3abec4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ],
+      "id": "bcff9e4a-98a6-42b5-a3b7-f95c559de605",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "LMpER5pDe3m3TgwN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the JSON output from AI Agent\nconst aiOutput = $input.first().json.output;\nconst parsedData = JSON.parse(aiOutput);\n\nreturn [{\n  json: parsedData\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "b56354a8-5f99-4042-8a7d-4667567ba917",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## Gmail",
+        "height": 560,
+        "width": 1080
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -180
+      ],
+      "id": "2df3173b-6db6-4b56-8f4f-7b483d35ca74",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.content }}",
+        "options": {
+          "ccList": "={{ $json.cc }}",
+          "sendTo": "={{ $json.to }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        0
+      ],
+      "id": "a5d4f1d1-6cae-444b-a483-1fb199638464",
+      "name": "Create a draft",
+      "webhookId": "a48a60f1-215c-4288-9a29-ad04b5048a04",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F7wEtzs6cJSQofAO",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7a32292-01b6-422e-88d6-b2cc3771ae7e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eaf5351894737dc36f3858d4faefd09839aea8a9032a7c92dac9c3a5a61d4974"
+  },
+  "id": "nx9I3dcW2xWVyUAm",
+  "tags": []
+}

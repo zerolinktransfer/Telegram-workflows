@@ -1,0 +1,108 @@
+{
+  "name": "perplexity search",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -300,
+        -80
+      ],
+      "id": "10a422f2-ae69-47f3-8e4b-08df2ff59ae3",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "model": "perplexity/sonar-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        140
+      ],
+      "id": "0cc0952b-9725-4057-9bd5-0f85439b9bce",
+      "name": "Perplexity Sonar-Pro",
+      "credentials": {
+        "openRouterApi": {
+          "id": "3tPr2V44m79iJyuD",
+          "name": "OpenRouter account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## perplexity_search",
+        "height": 500,
+        "width": 820
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -200
+      ],
+      "id": "1bc9e1f0-c29a-4a54-a9ee-0b76705ff7f5",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        -80
+      ],
+      "id": "bfa1177f-1ba7-47e0-9bb8-32b0abf439fb",
+      "name": "perplexity_search"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "perplexity_search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perplexity Sonar-Pro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "perplexity_search",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perplexity_search": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0129e11f-e2e6-44a5-8382-545ab32fbb1b",
+  "meta": {
+    "instanceId": "eaf5351894737dc36f3858d4faefd09839aea8a9032a7c92dac9c3a5a61d4974"
+  },
+  "id": "oF9eQAAYBKiJeqL1",
+  "tags": []
+}

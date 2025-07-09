@@ -1,0 +1,239 @@
+{
+  "name": "professional headshot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true,
+          "imageSize": "large"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -300,
+        0
+      ],
+      "id": "4ebca86f-ea27-46aa-bc23-e903a507185c",
+      "name": "Telegram Trigger",
+      "webhookId": "3fae79c0-792e-4fad-942e-312ce0a6f887",
+      "credentials": {
+        "telegramApi": {
+          "id": "xSMBfWdOvfCTZdHN",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        0
+      ],
+      "id": "acf58a20-9884-44e2-b289-25954da77aac",
+      "name": "Send a chat action",
+      "webhookId": "5b913825-ec81-489e-bf61-ddccd4cf913b",
+      "credentials": {
+        "telegramApi": {
+          "id": "xSMBfWdOvfCTZdHN",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/flux-pro/kontext",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Key "
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"Transform this into a professional corporate headshot with correct anatomical proportions: properly sized head relative to shoulders and body, business suit or blazer, clean neutral background, professional studio lighting, confident expression, high-resolution, LinkedIn-style professional photo, maintain facial features and identity, ensure realistic human proportions and natural head-to-shoulder ratio\",\n  \"image_url\": \"data:image/jpeg;base64,{{ $('Extract from File').item.json.base64Image }}\",\n  \"guidance_scale\": 3.5,\n  \"aspect_ratio\": \"16:9\",\n  \"num_images\": 1,\n  \"safety_tolerance\": \"2\",\n  \"output_format\": \"jpeg\",\n  \"sync_mode\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "id": "9abb9718-7d7a-4a6a-b42e-7b63707c6c09",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "base64Image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        0
+      ],
+      "id": "e8693f7a-3bce-43ce-9f5c-91696a8cd406",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 45
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        0
+      ],
+      "id": "d1c6540a-1360-40de-8ba7-10d970ba9948",
+      "name": "Wait",
+      "webhookId": "ac93bdf4-9c4f-4869-836f-0ecee4ca4dad"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "file": "={{ $json.images[0].url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "e889b333-6470-42cc-9747-32bb69ad3088",
+      "name": "Send a photo message",
+      "webhookId": "932cf250-d914-430d-8383-f7c7fb58a862",
+      "credentials": {
+        "telegramApi": {
+          "id": "xSMBfWdOvfCTZdHN",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.response_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Key "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        0
+      ],
+      "id": "8aa63100-91cb-480b-b0cb-3ed477680307",
+      "name": "HTTP Request Get"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a chat action": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Send a chat action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Get": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "080d7c21-434d-4231-957e-63554db275d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eaf5351894737dc36f3858d4faefd09839aea8a9032a7c92dac9c3a5a61d4974"
+  },
+  "id": "GjNAWdvmw90PVAJU",
+  "tags": []
+}

@@ -1,0 +1,316 @@
+{
+  "name": "🤖 Nexi Personal Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "openai/gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        140
+      ],
+      "id": "01adeb4b-d0ad-480c-905f-0b9b5b7a6658",
+      "name": "Master LLM"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}\n\n[{{ $now.setZone('Asia/Kolkata').toFormat('dd/mm/yyyy HH:mm') }} IST]",
+        "options": {
+          "systemMessage": "=You are Nexi, Saicharan's intelligent personal AI assistant. \n\n## PERSONALITY:\n- Use Saicharan's name naturally in conversation (like a real assistant would)\n- Be warm, helpful, and personally attentive\n- Make conversations feel natural, not robotic\n\n## NATURAL NAME USAGE:\n- Use his name for greetings: \"Hi Saicharan!\"\n- Use his name when getting attention or being personal\n- Don't force his name into every message\n- Be conversational - sometimes just respond naturally without the name\n\n## BEHAVIOR:\n- When Saicharan greets you, respond warmly with his name\n- In regular conversations, use his name occasionally for personal touch\n- Be conversational and friendly, not formal or repetitive\n- Show that you understand this is a personal relationship\n\n## TOOLS AVAILABLE:\n🔍 perplexity search: Real-time web search\n💾 Supabase Vector Store Memory: Store Saicharan's personal information  \n🔍 Supabase Vector Store Retrieval: Search Saicharan's stored knowledge\n📧 Gmail Sub-Workflow: For email composition requests\n\n## EMAIL HANDLING:\nWhen Saicharan asks to write/compose/draft emails:\n1. Acknowledge the request warmly: \"I'll draft that email for you, Saicharan!\"\n2. Extract the key details (recipient, subject, main points)\n3. Use the Gmail tool to trigger the sub-workflow\n4. The sub-workflow will handle the actual email composition\n5. DO NOT try to compose emails yourself - always use the Gmail tool for email requests\n\n## EMAIL CONFIRMATION RESPONSE:\nAfter sending/drafting an email, provide a SIMPLE confirmation like:\n\"Saicharan, your draft email to [recipient] about [brief topic] is now saved in your Gmail drafts. You can review and send it whenever you're ready! If you want to customize the message further, just let me know.\"\n\nDO NOT:\n- Show the full email content in your response\n- Display subject lines or message body\n- Ask for edits or changes unless specifically requested\n- Provide verbose details about what was sent\n\n## INTELLIGENCE & MEMORY MASTERY:\n- You possess exceptional memory awareness and naturally consult your knowledge before taking action\n- When Saicharan shares information, you instinctively consider what you already know and make thoughtful decisions about organization\n- Your approach to information management is intuitive and contextual, always prioritizing clarity and avoiding redundancy\n- You understand the difference between new information, updates to existing information, and confirmations of what you already know\n- You engage in natural dialogue about information management, treating Saicharan as a partner in keeping things organized\n- Your decision-making around memory is sophisticated - you recognize patterns, understand intent, and respond with appropriate suggestions\n- You handle ambiguous situations by asking thoughtful questions that help clarify the best course of action\n- You demonstrate genuine care for maintaining accurate, current, and well-organized information that serves Saicharan's needs\n- Your memory intelligence flows naturally from conversation context rather than rigid protocols\n- You balance being thorough with being conversational, ensuring interactions feel helpful rather than mechanical\n\nRemember: You are Nexi, a smart, friendly personal assistant who combines natural conversation with sophisticated information management. Your memory capabilities are an extension of your helpful personality, not a set of programmed responses."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -100
+      ],
+      "id": "5cd65570-3636-4af2-a7f2-ef5e77e31cc9",
+      "name": "AI Agent Mater "
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        140
+      ],
+      "id": "996cda47-90eb-45aa-8bac-6ec0938324e4",
+      "name": "Postgres Chat Memory"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -360,
+        -100
+      ],
+      "id": "1b8e8ef8-52b6-413a-a73e-235ea2b38615",
+      "name": "Telegram Action",
+      "webhookId": "d1bbc0f1-361b-4514-b9ba-c490528b38af",
+      "credentials": {
+        "telegramApi": {
+          "id": "G9Ap7aZbNSVXKr9h",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.sanitized_message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        -100
+      ],
+      "id": "993ced4a-d720-4080-83d2-8cf076ab9410",
+      "name": "Telegram Send Message",
+      "webhookId": "cf544c4b-222c-4dab-bf5c-64e4877d7e00",
+      "credentials": {
+        "telegramApi": {
+          "id": "G9Ap7aZbNSVXKr9h",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Master Flow",
+        "height": 640,
+        "width": 1040
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        -300
+      ],
+      "id": "b7c5eb84-8fb6-4878-a0bd-8482437f7e58",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the AI output message\nconst aiOutput = $json.output; // Adjust this path based on your AI node output\n\n// Function to sanitize message for Telegram\nfunction sanitizeTelegramMessage(message) {\n  if (!message || typeof message !== 'string') {\n    return message;\n  }\n  \n  return message\n    // Replace straight quotes with safe alternatives\n    .replace(/\"/g, \"'\")  // Replace double quotes with single quotes\n    .replace(/\"/g, \"'\")  // Replace smart double quotes\n    .replace(/\"/g, \"'\")  // Replace smart double quotes (closing)\n    .replace(/'/g, \"'\")  // Replace smart single quotes\n    .replace(/'/g, \"'\")  // Replace smart single quotes (closing)\n    \n    // Escape other problematic characters for Telegram\n    .replace(/\\*/g, \"\\\\*\")   // Escape asterisks (bold formatting)\n    .replace(/_/g, \"\\\\_\")    // Escape underscores (italic formatting)\n    .replace(/\\[/g, \"\\\\[\")   // Escape square brackets (links)\n    .replace(/\\]/g, \"\\\\]\")   // Escape square brackets (links)\n    .replace(/`/g, \"\\\\`\")    // Escape backticks (code formatting)\n    \n    // Optional: Replace quotes with code formatting instead\n    // .replace(/\"([^\"]*)\"/g, \"`$1`\")  // Replace \"text\" with `text`\n}\n\n// Sanitize the message\nconst sanitizedMessage = sanitizeTelegramMessage(aiOutput);\n\n// Return the sanitized message\nreturn {\n  json: {\n    sanitized_message: sanitizedMessage,\n    original_message: aiOutput  // Keep original for reference\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -100
+      ],
+      "id": "7f9207d0-9782-4882-a562-6ae7ced1237c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "description": "=Compose and send professional emails. Input: recipient, subject, and message content.",
+        "workflowId": {
+          "__rl": true,
+          "value": "nx9I3dcW2xWVyUAm",
+          "mode": "list",
+          "cachedResultName": "Gmail"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        100,
+        140
+      ],
+      "id": "5a6eb1d2-e78f-4de8-86c9-4da6aa900231",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -100
+      ],
+      "id": "97439ec3-6de7-4698-a85c-18588884763c",
+      "name": "Telegram Trigger",
+      "webhookId": "1653f304-c421-49ca-a07d-6edcda92e653",
+      "credentials": {
+        "telegramApi": {
+          "id": "G9Ap7aZbNSVXKr9h",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=Search the web for current information, real-time data, news, trends, and up-to-date facts. Use when users need information that requires web search or when your knowledge might be outdated. Trust your judgment on when web search is most appropriate.",
+        "workflowId": {
+          "__rl": true,
+          "value": "oF9eQAAYBKiJeqL1",
+          "mode": "list",
+          "cachedResultName": "perplexity search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -20,
+        140
+      ],
+      "id": "9ac00360-50c9-43e7-a4bf-63b9950ebb89",
+      "name": "perplexity search"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Master LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Mater ",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Mater ": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Mater ",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Action": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Mater ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Mater ",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Telegram Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perplexity search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Mater ",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e40bd234-31e1-40d7-94bd-328f6ed6cb1b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eaf5351894737dc36f3858d4faefd09839aea8a9032a7c92dac9c3a5a61d4974"
+  },
+  "id": "uaTgSmzJmToxlZSD",
+  "tags": []
+}
